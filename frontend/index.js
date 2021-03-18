@@ -10,7 +10,7 @@ const BULLET_RADIUS = 5;
 const PLAYER_RADIUS = 11.5;
 const font = "Tahoma";
 
-const socket = io('http://localhost:3000');
+const socket = io('https://frozen-bastion-63637.herokuapp.com/');
 
 socket.on('init', handleInit);
 socket.on('gameState', handleGameState);
