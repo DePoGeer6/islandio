@@ -4,7 +4,7 @@ const TILE_SIZE = 75;
 const TILE_GAP = 5;
 const BULLET_RADIUS = 5;
 const PLAYER_RADIUS = 11.5;
-const FRAME_RATE = 60;
+const FRAME_RATE = 30;
 const FONT = "Tahoma";
 const subs = ["₀","₁","₂","₃","₄","₅","₆","₇","₈","₉"];
 

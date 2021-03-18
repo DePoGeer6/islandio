@@ -3,7 +3,7 @@
 
 const BOARD_WIDTH = 60;
 const BOARD_HEIGHT = 50;
-const FRAME_RATE = 60;
+const FRAME_RATE = 30;
 const TILE_SIZE = 75;
 const TILE_GAP = 5;
 const BULLET_RADIUS = 5;
