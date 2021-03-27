@@ -1,8 +1,8 @@
 
 //const {Tile, HomeTile, WallTile, MineTile, SmitheryTile, TurretTile, Player} = require.main.require('./customObjects');
 
-const BOARD_WIDTH = 60;
-const BOARD_HEIGHT = 50;
+const BOARD_WIDTH = 10;
+const BOARD_HEIGHT = 10;
 const FRAME_RATE = 30;
 const TILE_SIZE = 75;
 const TILE_GAP = 5;
@@ -11,6 +11,7 @@ const PLAYER_RADIUS = 11.5;
 const font = "Tahoma";
 
 const socket = io('https://frozen-bastion-63637.herokuapp.com/');
+//const socket = io('http://localhost:3000')
 
 socket.on('init', handleInit);
 socket.on('gameState', handleGameState);
@@ -240,7 +241,9 @@ function handleGameState(state) {
 function handleGameOver(winner) {
 	if(!gameActive){return;}
 	winner = JSON.parse(winner);
+	console.log(winner.winner.id);
 	if(winner.winner.id == clientPlayer.id) {
+		console.log("winning message rendered");
 		//alert("you win");
 		renderWinnerMessage(clientPlayer);
 	} else {

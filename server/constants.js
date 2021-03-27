@@ -1,5 +1,5 @@
-const BOARD_WIDTH = 60;
-const BOARD_HEIGHT = 50;
+const BOARD_WIDTH = 10;
+const BOARD_HEIGHT = 10;
 const TILE_SIZE = 75;
 const TILE_GAP = 5;
 const BULLET_RADIUS = 5;

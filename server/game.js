@@ -89,14 +89,14 @@ function gameLoop(state) {
 	var winner;
 	var numbLosers = 0;
 	for(p of state.players) {
-		if(!p.gameOver){
+		if(p.gameOver == false){
 			winner = p;
 		} else {
 			numbLosers++;
 		}
 	}
 	if(numbLosers == state.players.length-1){
-		return p;
+		return winner;
 	}
 	
 	for(player of state.players) {
