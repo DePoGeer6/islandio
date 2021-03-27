@@ -105,6 +105,10 @@ io.on('connection', client => {
 
 function startGameInterval(roomName) {
 	const intervalId = setInterval(() => {
+		if(Object.keys(io.sockets.in(roomName).connected).length == 0){
+			state[roomName] = null;
+			clearInterval(intervalId);
+		}
 		const winner = gameLoop(state[roomName]);
 		
 		if(!winner){
@@ -125,5 +129,5 @@ function emitGameOver(roomName, winner) {
 	io.sockets.in(roomName).emit('gameOver', JSON.stringify({winner}));
 }
 
-io.listen(process.env.PORT || 3000);
-//io.listen(3000);
+//io.listen(process.env.PORT || 3000);
+io.listen(3000);

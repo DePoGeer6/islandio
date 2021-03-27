@@ -101,41 +101,46 @@ function gameLoop(state) {
 	
 	for(player of state.players) {
 		player.x += player.vel.x;
-		if(playerWithinTile(player.x, player.y)){
-			if(playerWithinTile(player.x, player.y).owner == null || playerWithinTile(player.x, player.y) == null) {
+		var tt = playerWithinTile(player.x, player.y);
+		if(tt){
+			if(tt.owner == null || tt == null) {
 				player.x -= player.vel.x;
 			}
-			if(playerWithinTile(player.x, player.y).owner != player.id && playerWithinTile(player.x, player.y).constructor.name == "WallTile"){
+			tt = playerWithinTile(player.x, player.y);
+			if(tt.owner != player.id && tt.constructor.name == "WallTile"){
 				player.x -= player.vel.x*.5;
 			}
 		}
 		player.y += player.vel.y;
-		if(playerWithinTile(player.x, player.y)){
-			if(playerWithinTile(player.x, player.y).owner == null || playerWithinTile(player.x, player.y) == null) {
+		tt = playerWithinTile(player.x, player.y);
+		if(tt){
+			if(tt.owner == null || tt == null) {
 				player.y -= player.vel.y;
 			}
-			if(playerWithinTile(player.x, player.y).owner != player.id && playerWithinTile(player.x, player.y).constructor.name == "WallTile"){
+			tt = playerWithinTile(player.x, player.y);
+			if(tt.owner != player.id && tt.constructor.name == "WallTile"){
 				player.y -= player.vel.y*.5;
 			}
 		}
 		borderBox(player);
 		player.arrowData = calcArrow(player, 40);
 		
-		if(playerWithinTile(player.x, player.y).constructor.name == "MineTile" && !player.hidden){
-			player.gold += playerWithinTile(player.x, player.y).queueG;
-			player.stone += playerWithinTile(player.x, player.y).queueS;
-			playerWithinTile(player.x, player.y).queueG = 0;
-			playerWithinTile(player.x, player.y).queueS = 0;
+		tt = playerWithinTile(player.x, player.y);
+		if(tt.constructor.name == "MineTile" && !player.hidden){
+			player.gold += tt.queueG;
+			player.stone += tt.queueS;
+			tt.queueG = 0;
+			tt.queueS = 0;
 		}
 		
-		if(playerWithinTile(player.x, player.y).owner != player.id && playerWithinTile(player.x, player.y).constructor.name == "WallTile" && !player.hidden){
+		if(tt.owner != player.id && tt.constructor.name == "WallTile" && !player.hidden){
 			player.health -= 1/(FRAME_RATE*.5);
 			if(player.health <= 0){
 				killPlayer(player);
 			}
 		}
 		
-		if(playerWithinTile(player.x, player.y) == player.homeTile && !player.hidden){
+		if(tt == player.homeTile && !player.hidden){
 			player.regen = true;
 		} else if(!player.purchasedRegen){
 			player.regen = false;

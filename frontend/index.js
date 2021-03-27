@@ -1,6 +1,4 @@
 
-//const {Tile, HomeTile, WallTile, MineTile, SmitheryTile, TurretTile, Player} = require.main.require('./customObjects');
-
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 10;
 const FRAME_RATE = 30;
@@ -10,8 +8,8 @@ const BULLET_RADIUS = 5;
 const PLAYER_RADIUS = 11.5;
 const font = "Tahoma";
 
-const socket = io('https://frozen-bastion-63637.herokuapp.com/');
-//const socket = io('http://localhost:3000')
+//const socket = io('https://frozen-bastion-63637.herokuapp.com/');
+const socket = io('http://localhost:3000')
 
 socket.on('init', handleInit);
 socket.on('gameState', handleGameState);
@@ -93,14 +91,14 @@ function drawBackground() {
 function keydown(e) {
 	keys = (keys || []);
   keys[e.keyCode] = (e.type == "keydown");
-	socket.emit('keyChange', keys);
+	//socket.emit('keyChange', keys);
 }
 function keyup(e) {
 	keys[e.keyCode] = (e.type == "keydown");
 	socket.emit('keyChange', keys);
 }
 
-setInterval(checkKeys, 33);
+setInterval(checkKeys, 1000/FRAME_RATE);
 function checkKeys() {
 	for(key of keys){
 		if(key === true){
@@ -273,17 +271,6 @@ function reset() {
 	gameCodeDisplay.innerText = "";
 	initialScreen.style.display = "block";
 	gameScreen.style.display = "none"
-}
-
-function playerWithinTile(player, tiles){
-  for(var y=0; y < BOARD_HEIGHT; y++){
-    for(var x=0; x < BOARD_WIDTH; x++){
-      var tile = tiles[x][y]
-      if((player.x-tile.topX <= 80)&&(player.y-tile.topY <= 80)){
-         return tile;
-      }
-    }
-  }
 }
 
 function getMousePosition(canvas, event) { 
