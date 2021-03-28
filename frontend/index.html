@@ -4,42 +4,39 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <title>Island.io</title>
-		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-		<style>
-			#gameScreen {
-				display: none;
-			}
-		</style>
     <link href="style.css" rel="stylesheet" type="text/css" />
 		<script src="../customObjects.js"></script>
   </head>
   <body>
-		<div id="initialScreen" class="h-100">
-			<div class="d-flex flex-column align-items-center justify-content-center h-100">
-					<h1>Island.io</h1><br>
-					<button
+		<div class="true-center" id="initialScreen">
+			<div>
+					<h1 class="center">Islands.io</h1>
+					<div class="center"><button
 						type="submit"
-						class="btn btn-success"
 						id="newGameButton"
+						class="center"
 					>
 						Create New Game
-					</button>
-					<div>OR</div>
-					<div class="form-group">
+					</button></div>
+					<h2 class="center">OR</h2>
+					<div class="center">
 						<input type="text" placeholder="Enter Game Code" id="gameCodeInput"/>
 					</div>
-					<button
+					<div class="center"><button
+						class="center"
 						type="submit"
-						class="btn btn-success"
 						id="joinGameButton"
 					>
 						Join Game
-					</button>
+					</button></div>
 			</div>
+			<div style="height:30px"><p id="errorBox"></p></div>
 		</div>
 		
+
+		
 		<div id="gameScreen">
-			<h1 id="gameCodeDisplay">Your game code is:</h1>
+			<div class="gc"><h2 class="center" id="gameCodeDisplay">Your game code is:</h2></div>
 			<canvas id="drawingArea" style="border:0px solid black"></canvas>
 		</div>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>

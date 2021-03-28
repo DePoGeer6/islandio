@@ -36,6 +36,8 @@ io.on('connection', client => {
 		} else if(numClients > 1) { 
 			client.emit('tooManyPlayers');
 			return;
+		} else {
+			client.emit('allGood');
 		}
 		
 		clientRooms[client.id] = gameCode;
@@ -111,8 +113,10 @@ io.on('connection', client => {
 function startGameInterval(roomName) {
 	
 	emitGameState(roomName, {board: state[roomName].board, players: state[roomName].players, bullets: state[roomName].bullets});
+	var repeat = 0;
 	
 	const intervalId = setInterval(() => {
+		repeat++;
 		if(Object.keys(io.sockets.in(roomName).connected).length == 0){
 			state[roomName] = null;
 			clearInterval(intervalId);
@@ -121,7 +125,7 @@ function startGameInterval(roomName) {
 		
 		if(!winner && Object.keys(io.sockets.in(roomName).connected).length >= 1){
 			emitGameState(roomName, {players: state[roomName].players, bullets: state[roomName].bullets, changes: state[roomName].changes});
-			state[roomName].changes = [];
+			if(repeat%3==0){state[roomName].changes = [];}
 		} else {
 			emitGameOver(roomName, winner);
 			state[roomName] = null;

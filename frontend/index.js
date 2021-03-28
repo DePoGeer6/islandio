@@ -14,6 +14,7 @@ const socket = io('https://frozen-bastion-63637.herokuapp.com/');
 var gameState = {};
 
 socket.on('init', handleInit);
+socket.on('allGood', handleAllGood);
 socket.on('gameState', handleGameState);
 socket.on('gameOver', handleGameOver);
 socket.on('gameCode', handleGameCode);
@@ -29,6 +30,7 @@ const newGameBtn = document.getElementById('newGameButton');
 const joinGameBtn = document.getElementById('joinGameButton');
 const gameCodeInput = document.getElementById('gameCodeInput');
 const gameCodeDisplay = document.getElementById('gameCodeDisplay');
+const errorBox = document.getElementById('errorBox');
 
 newGameBtn.addEventListener('click', newGame);
 joinGameBtn.addEventListener('click', joinGame);
@@ -41,6 +43,9 @@ function newGame() {
 function joinGame() {
 	const code = gameCodeInput.value;
 	socket.emit('joinGame', code);
+}
+
+function handleAllGood() {
 	init();
 }
 
@@ -204,10 +209,18 @@ function renderPlayer(player) {
 }
 
 function renderTiles(state) {
+	
+	let x1 = state.players[playerNumber-1].x-canvas.width/2-100;
+	let x2 = state.players[playerNumber-1].x+canvas.width/2+100;
+	let y1 = state.players[playerNumber-1].y-canvas.height/2-100;
+	let y2 = state.players[playerNumber-1].y+canvas.height/2+100;
+	
 	for(let i = 0; i < BOARD_WIDTH; i++) {
     for (let j = 0; j < BOARD_HEIGHT; j++) {
       var tile = state.board[i][j];
-      renderTile(tile, tile.topX, tile.topY, tile.color, tile.text , tile.textSize);
+			if(tile.topX > x1 && tile.topX < x2 && tile.topY > y1 && tile.topY < y2){
+				renderTile(tile, tile.topX, tile.topY, tile.color, tile.text , tile.textSize);
+			}
     } 
   }
 	
@@ -276,12 +289,14 @@ function handleGameCode(code) {
 
 function handleUnknownGame() {
 	reset();
-	alert("Unknown game code");
+	//alert("Unknown game code");
+	errorBox.innerHTML = "* Unknown Game Code *";
 }
 
 function handleTooManyPlayers() {
 	reset();
-	alert("This game is already in progress");
+	//alert("This game is already in progress");
+	errorBox.innerHTML = "* This Game is Already in Progress *";
 }
 
 function reset() {
