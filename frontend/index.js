@@ -135,11 +135,13 @@ window.onresize = resizeCanvas;
 
 function renderGame(state) {
 	
+	if(state.changes){
 	if(state.changes.length != 0) {
 		for(t of state.changes){
 			console.log('changes');
 			gameState.board[t.column][t.row] = t;
 		}
+	}
 	}
 	
 	localPlayers = state.players;
