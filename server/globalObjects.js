@@ -106,6 +106,7 @@ class Player {
 		this.turretShootDelay = 0;
 		this.gameOver = false;
 		this.roomName = null;
+		this.canvas = {width: 0, height:0};
   }
 }
 
