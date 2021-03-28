@@ -105,6 +105,7 @@ class Player {
 		this.regenDelay = 0;
 		this.turretShootDelay = 0;
 		this.gameOver = false;
+		this.roomName = null;
   }
 }
 

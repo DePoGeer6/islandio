@@ -13,17 +13,14 @@ module.exports = {
 	shoot,
 }
 
-var tiles;
-var homeTiles = [];
-var mineTiles = [];
-var smitheryTiles = [];
-var wallTiles = [];
-var bullets = [];
-var players = [];
-var turretTiles = [];
+var gameStates = {};
 
-function initGame() {
+function initGame(rn) {
 	const state = createGameState();
+	for(p of state.players){
+		p.roomName = rn;
+	}
+	gameStates[rn] = state;
 	return state;
 }
 
@@ -63,14 +60,6 @@ function createGameState() {
 	board[8][3] = new MineTile(tt.topX, tt.topY, tt.row, tt.column, playerTwo.id, playerTwo.color);
 	mt.push(board[8][3]);
 	
-	tiles = board; 
-	homeTiles = ht;
-	mineTiles = mt;
-	smitheryTiles = st;
-	wallTiles = wt;
-	bullets = b;
-	turretTiles = tts;
-	
 	return {
 		players: [playerOne, playerTwo],
 		board: board,
@@ -83,7 +72,10 @@ function createGameState() {
 	}
 }
 
-function gameLoop(state) {
+function gameLoop(state, roomName) {
+	
+	gameStates[roomName] = state;
+	
 	if(!state){return;}
 
 	var winner;
@@ -101,31 +93,31 @@ function gameLoop(state) {
 	
 	for(player of state.players) {
 		player.x += player.vel.x;
-		var tt = playerWithinTile(player.x, player.y);
+		var tt = playerWithinTile(player.x, player.y, roomName);
 		if(tt){
 			if(tt.owner == null || tt == null) {
 				player.x -= player.vel.x;
 			}
-			tt = playerWithinTile(player.x, player.y);
+			tt = playerWithinTile(player.x, player.y, roomName);
 			if(tt.owner != player.id && tt.constructor.name == "WallTile"){
 				player.x -= player.vel.x*.5;
 			}
 		}
 		player.y += player.vel.y;
-		tt = playerWithinTile(player.x, player.y);
+		tt = playerWithinTile(player.x, player.y, roomName);
 		if(tt){
 			if(tt.owner == null || tt == null) {
 				player.y -= player.vel.y;
 			}
-			tt = playerWithinTile(player.x, player.y);
+			tt = playerWithinTile(player.x, player.y, roomName);
 			if(tt.owner != player.id && tt.constructor.name == "WallTile"){
 				player.y -= player.vel.y*.5;
 			}
 		}
-		borderBox(player);
+		borderBox(player, roomName);
 		player.arrowData = calcArrow(player, 40);
 		
-		tt = playerWithinTile(player.x, player.y);
+		tt = playerWithinTile(player.x, player.y, roomName);
 		if(tt.constructor.name == "MineTile" && !player.hidden){
 			player.gold += tt.queueG;
 			player.stone += tt.queueS;
@@ -146,7 +138,7 @@ function gameLoop(state) {
 			player.regen = false;
 		}
 		
-		var focus = focusTile(player.arrowData);
+		var focus = focusTile(player.arrowData, roomName);
 		if(focus != undefined){
 			if(focus.constructor.name == "SmitheryTile"){
 				player.renderingShop = true;
@@ -204,23 +196,23 @@ function gameLoop(state) {
 	//genResources
 	genResources(state.mineTiles);
 	
-	for(let i = 0; i<bullets.length; i++){
-    bullet = bullets[i];
+	for(let i = 0; i<state.bullets.length; i++){
+    bullet = state.bullets[i];
     if(bullet == undefined){
       break;
     }
     bullet.x += bullet.s*Math.sin(bullet.ang);
     bullet.y -= bullet.s*Math.cos(bullet.ang);
     bullet.life--;
-    bullet.damage = 1 + 0.333*(playerById(bullet.owner).forceLevel-1);
-    bullet.s = 7.5+(playerById(bullet.owner).forceLevel-1);
+    bullet.damage = 1 + 0.333*(playerById(bullet.owner, roomName).forceLevel-1);
+    bullet.s = 7.5+(playerById(bullet.owner, roomName).forceLevel-1);
     if(bullet.life <= 0){
-      bullets.splice(i, 1);
+      state.bullets.splice(i, 1);
       i--;
     }
-    if(bulletWithinTile(bullet) != undefined){
-      if(bulletWithinTile(bullet).owner != bullet.owner && bulletWithinTile(bullet).constructor.name == "WallTile"){
-        bullets.splice(i, 1);
+    if(bulletWithinTile(bullet, roomName) != undefined){
+      if(bulletWithinTile(bullet, roomName).owner != bullet.owner && bulletWithinTile(bullet, roomName).constructor.name == "WallTile"){
+        state.bullets.splice(i, 1);
         i--;
       }
     }
@@ -228,7 +220,7 @@ function gameLoop(state) {
 		if(p){
 			if(!p.hidden){
 				p.health -= bullet.damage;
-				bullets.splice(i, 1);
+				state.bullets.splice(i, 1);
 				i--;
 				if(p.health <= 0){
 					killPlayer(p);
@@ -236,13 +228,6 @@ function gameLoop(state) {
 			}
     }
   }
-	
-	tiles = state.board;
-	mineTiles = state.mineTiles;
-	houseTiles = state.houseTiles; 
-	smitheryTiles = state.smitheryTiles;
-	wallTiles = state.wallTiles;
-	players = state.players
 }
 
 function killPlayer(player) {
@@ -253,7 +238,8 @@ function killPlayer(player) {
 	player.dead = true;
 }
 
-function borderBox(player) {
+function borderBox(player, rn) {
+	var tiles = gameStates[rn].board;
 	if(player.x < 0){player.x = 0;}
 	if(player.y < 0){player.y = 0;}
 	if(player.x > tiles[BOARD_WIDTH-1][0].topX+75){player.x = tiles[BOARD_WIDTH-1][0].topX+75;}
@@ -319,10 +305,10 @@ function getUpdatedVelocity(keys, player) {
 	return tempVel;
 }
 
-function playerWithinTile(px, py){
+function playerWithinTile(px, py, rn){
   for(var y=0; y < BOARD_HEIGHT; y++){
     for(var x=0; x < BOARD_WIDTH; x++){
-      var tile = tiles[x][y]
+      var tile = gameStates[rn].board[x][y];
       if((px-tile.topX <= 80)&&(py-tile.topY <= 80)){
          return tile;
       }
@@ -330,10 +316,10 @@ function playerWithinTile(px, py){
   }
 }
 
-function focusTile(ad) {
+function focusTile(ad, rn) {
   for(var y=0; y < BOARD_HEIGHT; y++){
     for(var x=0; x < BOARD_WIDTH; x++){
-      var tile = tiles[x][y]
+      var tile = gameStates[rn].board[x][y];
       if((ad.arrowX-tile.topX <= 75)&&(ad.arrowY-tile.topY <= 75)){
          return tile;
       }
@@ -342,9 +328,9 @@ function focusTile(ad) {
 }
 
 
-function focusTileCheck(keys, player) {
+function focusTileCheck(keys, player, rm) {
 	if(player.hidden){return false;}
-	var focus = focusTile(player.arrowData);
+	var focus = focusTile(player.arrowData, rm);
   if(focus != undefined){    
     if(focus.owner == null){
       if(keys && keys[32]){ //press space
@@ -364,6 +350,7 @@ function focusTileCheck(keys, player) {
 }
 
 function claimTile(focus, player, type) {
+	var tiles = gameStates[player.roomName].board;
 	switch(type) {
 		case "plain":
 			if(player.stone >= 2){
@@ -375,7 +362,7 @@ function claimTile(focus, player, type) {
 		case "mine":
 			if(player.stone >= 10 && player.numMines < 3){
 				tiles[focus.column][focus.row] = new MineTile(focus.topX, focus.topY, focus.row, focus.column, player.id, player.color);
-				mineTiles.push(tiles[focus.column][focus.row]);
+				gameStates[player.roomName].mineTiles.push(tiles[focus.column][focus.row]);
 				player.numMines++;
 				player.stone -= 10;
 				return tiles[focus.column][focus.row];
@@ -384,7 +371,7 @@ function claimTile(focus, player, type) {
 		case "smithery": 
 			if(player.stone >= 5 && player.gold >= 5){
 				tiles[focus.column][focus.row] = new SmitheryTile(focus.topX, focus.topY, focus.row, focus.column, player.id, player.color);
-				smitheryTiles.push(tiles[focus.column][focus.row]);
+				gameStates[player.roomName].smitheryTiles.push(tiles[focus.column][focus.row]);
 				player.stone -= 5;
 				player.gold -= 5;
 				return tiles[focus.column][focus.row];
@@ -393,7 +380,7 @@ function claimTile(focus, player, type) {
 		case "turret":
 			if(player.stone >= 50 && player.gold >= 15){
 				tiles[focus.column][focus.row] = new TurretTile(focus.topX, focus.topY, focus.row, focus.column, player.id, player.color);
-				turretTiles.push(tiles[focus.column][focus.row]);
+				gameStates[player.roomName].turretTiles.push(tiles[focus.column][focus.row]);
 				player.stone -= 50;
 				player.gold -= 15;
 			}
@@ -408,8 +395,8 @@ function genResources(mt) {
   }
 }
 
-function shopCheck(keys, player) {
-	var focus = focusTile(player.arrowData);
+function shopCheck(keys, player, rm) {
+	var focus = focusTile(player.arrowData, rm);
 	if(focus != undefined) {
 		if(focus.constructor.name == "SmitheryTile") {
 			if(keys && keys[49] && player.speedLevel < 9 && player.gold >= (player.speedLevel+1)*10){
@@ -433,8 +420,8 @@ function shopCheck(keys, player) {
 	}
 }
 
-function upgradeCheck(keys, player) {
-	var focus = focusTile(player.arrowData);
+function upgradeCheck(keys, player, rm) {
+	var focus = focusTile(player.arrowData, rm);
 	if(focus != undefined) {
 		if(focus.constructor.name == "MineTile" && focus.owner == player.id && keys && keys[32] && player.gold >= 15*focus.level && focus.level<9){
       upgrade(focus, player, 15*focus.level, 5);
@@ -465,13 +452,13 @@ function upgrade(tile, player, cost, time) {
 			player.gold -= cost;
 		}
 		if(tile.constructor.name == "Tile"){
-      tiles[tile.column][tile.row] = new WallTile(tile.topX, tile.topY, tile.row, tile.column, player.id, player.color);
-      wallTiles.push(tiles[tile.column][tile.row]);
+      gameStates[player.roomName].board[tile.column][tile.row] = new WallTile(tile.topX, tile.topY, tile.row, tile.column, player.id, player.color);
+      gameStates[player.roomName].wallTiles.push(gameStates[player.roomName].board[tile.column][tile.row]);
       player.stone -= cost;
     }
 		if(tile.constructor.name == "HomeTile"){
-      playerById(tile.owner).homeTile = null;
-      tiles[tile.column][tile.row] = new Tile(tile.topX, tile.topY, tile.row, tile.column, player.id, player.color);
+      playerById(tile.owner, player.roomName).homeTile = null;
+      gameStates[player.roomName].board[tile.column][tile.row] = new Tile(tile.topX, tile.topY, tile.row, tile.column, player.id, player.color);
     }
 	}
 }
@@ -509,10 +496,10 @@ function shoot(player, bullets) {
 	}
 }
 
-function bulletWithinTile(bullet){
+function bulletWithinTile(bullet, rn){
   for(var y=0; y < BOARD_HEIGHT; y++){
     for(var x=0; x < BOARD_WIDTH; x++){
-      var tile = tiles[x][y]
+      var tile = gameStates[rn].board[x][y]
       var angle = bullet.ang;
       if(angle < 0){angle = 6.28319+bullet.ang;}
       if(angle >= 0.785398 && angle <= 3.92699){
@@ -528,8 +515,8 @@ function bulletWithinTile(bullet){
   }
 }
 
-function playerById(id) {
-	for(p of players) {
+function playerById(id, rn) {
+	for(p of gameStates[rn].players) {
 		if(id == p.id){return p;}
 	}
 }
@@ -544,15 +531,15 @@ function turretShoot(turret, player) {
   }
   if(bulletAng >= 2.33874 && bulletAng <= 2.37365){bulletAng = 2.3;}
   if(bulletAng >= -0.802851 && bulletAng <= -0.767945){bulletAng = -0.81;}
-  bullets.push(makeTurretBullet(turret.topX+TILE_SIZE/2, turret.topY+TILE_SIZE/2, 10, 7.5, bulletAng, turret));
+  gameStates[player.roomName].bullets.push(makeTurretBullet(turret.topX+TILE_SIZE/2, turret.topY+TILE_SIZE/2, 10, 7.5, bulletAng, turret, player.roomName));
 }
 
-function makeTurretBullet(x, y, radius, speed, ang, turret) {
+function makeTurretBullet(x, y, radius, speed, ang, turret, rn) {
   return {
     x: x,
     y: y,
     r: radius,
-    s: speed+(playerById(turret.owner).forceLevel-1),
+    s: speed+(playerById(turret.owner, rn).forceLevel-1),
     life: 3*FRAME_RATE,
     ang: ang,
     owner: turret.owner,

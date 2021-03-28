@@ -51,7 +51,7 @@ io.on('connection', client => {
 		clientRooms[client.id] = roomName;
 		client.emit('gameCode', roomName);
 		
-		state[roomName] = initGame();
+		state[roomName] = initGame(roomName);
 		
 		client.join(roomName);
 		client.number = 1;
@@ -61,13 +61,14 @@ io.on('connection', client => {
 	function handleKeyChange(keys) {
 		const roomName = clientRooms[client.id];
 		if(!roomName){return;}
+		if(!state[roomName]){return;}
 		const vel = getUpdatedVelocity(keys, state[roomName].players[client.number-1]);
 		if(vel){state[roomName].players[client.number-1].vel = vel;}
-		const newTile = focusTileCheck(keys, state[roomName].players[client.number-1]);
+		const newTile = focusTileCheck(keys, state[roomName].players[client.number-1], roomName);
 		if(newTile){state[roomName].board[newTile.column][newTile.row] = newTile;};
-		const deadKey = shopCheck(keys, state[roomName].players[client.number-1]);
+		const deadKey = shopCheck(keys, state[roomName].players[client.number-1], roomName);
 		if(deadKey) {client.emit('keyDead', deadKey);}
-		const result = upgradeCheck(keys, state[roomName].players[client.number-1]);
+		const result = upgradeCheck(keys, state[roomName].players[client.number-1], roomName);
 		if(result === false) {client.emit('stopUpgrading', result);}
 		else if(result) {client.emit('renderUpgrade', result);}
 	}
@@ -75,18 +76,21 @@ io.on('connection', client => {
 	function handleMouseMove(mouse) {
 		const roomName = clientRooms[client.id];
 		if(!roomName){return;}
+		if(!state[roomName]){return;}
 		state[roomName].players[client.number-1].mousePos = mouse;
 	}
 	
 	function handleCanvasChange(canvas) {
 		const roomName = clientRooms[client.id];
 		if(!roomName){return;}
+		if(!state[roomName]){return;}
 		state[roomName].players[client.number-1].canvas = canvas;
 	}
 	
 	function handleMouseDown(e) {
 		const roomName = clientRooms[client.id];
 		if(!roomName){return;}
+		if(!state[roomName]){return;}
 		var p = state[roomName].players[client.number-1];
 		if(p.shootDelay >= FRAME_RATE*.5){
 			shoot(p, state[roomName].bullets);
@@ -97,6 +101,7 @@ io.on('connection', client => {
 	function handleMouseUp(e) {
 		const roomName = clientRooms[client.id];
 		if(!roomName){return;}
+		if(!state[roomName]){return;}
 		var p = state[roomName].players[client.number-1];
 		p.shooting = false;
 	}
@@ -105,11 +110,11 @@ io.on('connection', client => {
 
 function startGameInterval(roomName) {
 	const intervalId = setInterval(() => {
-		if(Object.keys(io.sockets.in(roomName).connected).length == 0){
+		if(Object.keys(io.sockets.in(roomName).connected).length <= 1){
 			state[roomName] = null;
 			clearInterval(intervalId);
 		}
-		const winner = gameLoop(state[roomName]);
+		const winner = gameLoop(state[roomName], roomName);
 		
 		if(!winner){
 			emitGameState(roomName, state[roomName]);
@@ -121,13 +126,13 @@ function startGameInterval(roomName) {
 	}, 1000/FRAME_RATE);
 }
 
-function emitGameState(roomName, state) {
-	io.sockets.in(roomName).emit('gameState', JSON.stringify(state));
+function emitGameState(roomName, st) {
+	io.sockets.in(roomName).emit('gameState', JSON.stringify(st));
 }
 
 function emitGameOver(roomName, winner) {
 	io.sockets.in(roomName).emit('gameOver', JSON.stringify({winner}));
 }
 
-io.listen(process.env.PORT || 3000);
-//io.listen(3000);
+//io.listen(process.env.PORT || 3000);
+io.listen(3000);
