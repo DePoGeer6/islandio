@@ -109,15 +109,19 @@ io.on('connection', client => {
 });
 
 function startGameInterval(roomName) {
+	
+	emitGameState(roomName, {board: state[roomName].board, players: state[roomName].players, bullets: state[roomName].bullets});
+	
 	const intervalId = setInterval(() => {
-		if(Object.keys(io.sockets.in(roomName).connected).length <= 1){
+		if(Object.keys(io.sockets.in(roomName).connected).length == 0){
 			state[roomName] = null;
 			clearInterval(intervalId);
 		}
 		const winner = gameLoop(state[roomName], roomName);
 		
-		if(!winner){
-			emitGameState(roomName, state[roomName]);
+		if(!winner && Object.keys(io.sockets.in(roomName).connected).length >= 1){
+			emitGameState(roomName, {players: state[roomName].players, bullets: state[roomName].bullets, changes: state[roomName].changes});
+			state[roomName].changes = [];
 		} else {
 			emitGameOver(roomName, winner);
 			state[roomName] = null;

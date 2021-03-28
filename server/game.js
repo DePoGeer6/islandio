@@ -69,14 +69,17 @@ function createGameState() {
 		turretTiles: tts,
 		wallTiles: wt,
 		bullets: b,
+		changes: [],
 	}
 }
 
 function gameLoop(state, roomName) {
 	
-	gameStates[roomName] = state;
-	
 	if(!state){return;}
+	
+	gameStates[roomName].players = state.players;
+	gameStates[roomName].bullets = state.bullets;
+	state.changes = gameStates[roomName].changes;
 
 	var winner;
 	var numbLosers = 0;
@@ -123,6 +126,7 @@ function gameLoop(state, roomName) {
 			player.stone += tt.queueS;
 			tt.queueG = 0;
 			tt.queueS = 0;
+			//state.changes.push(tt);
 		}
 		
 		if(tt.owner != player.id && tt.constructor.name == "WallTile" && !player.hidden){
@@ -178,8 +182,8 @@ function gameLoop(state, roomName) {
 		
 		if(player.turretShootDelay >= FRAME_RATE) {
 			player.turretShootDelay = 0;
-			if(state.turretTiles.length > 0){
-			for(x of state.turretTiles) {
+			if(gameStates[roomName].turretTiles.length > 0){
+			for(x of gameStates[roomName].turretTiles) {
 				for(p of state.players) {
 					if(!p.hidden){
 						if(Math.abs(p.x-(x.topX+TILE_SIZE/2)) <= 250 && Math.abs(p.y-(x.topY+TILE_SIZE/2)) <= 250 && p.id != x.owner){
@@ -194,7 +198,7 @@ function gameLoop(state, roomName) {
 	}
 	
 	//genResources
-	genResources(state.mineTiles);
+	genResources(gameStates[roomName].mineTiles);
 	
 	for(let i = 0; i<state.bullets.length; i++){
     bullet = state.bullets[i];
@@ -356,6 +360,7 @@ function claimTile(focus, player, type) {
 			if(player.stone >= 2){
 				tiles[focus.column][focus.row].changeOwner(player);
 				player.stone -= 2;
+				gameStates[player.roomName].changes.push(tiles[focus.column][focus.row]);
 				return tiles[focus.column][focus.row];				
 			}
 			break;
@@ -365,6 +370,7 @@ function claimTile(focus, player, type) {
 				gameStates[player.roomName].mineTiles.push(tiles[focus.column][focus.row]);
 				player.numMines++;
 				player.stone -= 10;
+				gameStates[player.roomName].changes.push(tiles[focus.column][focus.row]);
 				return tiles[focus.column][focus.row];
 			}
 			break;
@@ -374,6 +380,7 @@ function claimTile(focus, player, type) {
 				gameStates[player.roomName].smitheryTiles.push(tiles[focus.column][focus.row]);
 				player.stone -= 5;
 				player.gold -= 5;
+				gameStates[player.roomName].changes.push(tiles[focus.column][focus.row]);
 				return tiles[focus.column][focus.row];
 			}
 			break;
@@ -383,6 +390,8 @@ function claimTile(focus, player, type) {
 				gameStates[player.roomName].turretTiles.push(tiles[focus.column][focus.row]);
 				player.stone -= 50;
 				player.gold -= 15;
+				gameStates[player.roomName].changes.push(tiles[focus.column][focus.row]);
+				return tiles[focus.column][focus.row];
 			}
 			break;
 	}
@@ -460,6 +469,7 @@ function upgrade(tile, player, cost, time) {
       playerById(tile.owner, player.roomName).homeTile = null;
       gameStates[player.roomName].board[tile.column][tile.row] = new Tile(tile.topX, tile.topY, tile.row, tile.column, player.id, player.color);
     }
+		gameStates[player.roomName].changes.push(gameStates[player.roomName].board[tile.column][tile.row]);
 	}
 }
 

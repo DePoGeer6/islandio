@@ -1,6 +1,6 @@
 
-const BOARD_WIDTH = 10;
-const BOARD_HEIGHT = 10;
+const BOARD_WIDTH = 60;
+const BOARD_HEIGHT = 50;
 const FRAME_RATE = 30;
 const TILE_SIZE = 75;
 const TILE_GAP = 5;
@@ -10,6 +10,8 @@ const font = "Tahoma";
 
 const socket = io('https://frozen-bastion-63637.herokuapp.com/');
 //const socket = io('http://localhost:3000')
+
+var gameState = {};
 
 socket.on('init', handleInit);
 socket.on('gameState', handleGameState);
@@ -127,12 +129,19 @@ function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 	socket.emit('canvasChange', {height: canvas.height, width: canvas.width});
-	//renderGame(gameState);
 };
 
 window.onresize = resizeCanvas;
 
 function renderGame(state) {
+	
+	if(state.changes.length != 0) {
+		for(t of state.changes){
+			console.log('changes');
+			gameState.board[t.column][t.row] = t;
+		}
+	}
+	
 	localPlayers = state.players;
 	
 	gameCodeDisplay.style.display = "none"; 
@@ -232,8 +241,16 @@ function handleInit(number) {
 function handleGameState(state) {
 	if(!gameActive){return;}
 	state = JSON.parse(state);
+	
+	if(Object.keys(gameState).length == 0){gameState = state;}
+	else {
+		gameState.players = state.players;
+		gameState.bullets = state.bullets;
+		gameState.changes = state.changes;
+	}
+	
 	clientPlayer = state.players[playerNumber-1];
-	requestAnimationFrame(() => renderGame(state));
+	requestAnimationFrame(() => renderGame(gameState));
 }
 
 function handleGameOver(winner) {
