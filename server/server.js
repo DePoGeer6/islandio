@@ -113,10 +113,9 @@ io.on('connection', client => {
 function startGameInterval(roomName) {
 	
 	emitGameState(roomName, {board: state[roomName].board, players: state[roomName].players, bullets: state[roomName].bullets});
-	var repeat = 0;
 	
 	const intervalId = setInterval(() => {
-		repeat++;
+		
 		if(Object.keys(io.sockets.in(roomName).connected).length == 0){
 			state[roomName] = null;
 			clearInterval(intervalId);
@@ -125,12 +124,14 @@ function startGameInterval(roomName) {
 		const winner = gameLoop(state[roomName], roomName);
 		
 		if(!winner && Object.keys(io.sockets.in(roomName).connected).length >= 1){
-			if(repeat%90==0){
-				emitGameState(roomName, {board: state[roomName].board, players: state[roomName].players, bullets: state[roomName].bullets, changes: state[roomName].changes});
-			} else {
-				emitGameState(roomName, {players: state[roomName].players, bullets: state[roomName].bullets, changes: state[roomName].changes});
+			emitGameState(roomName, {players: state[roomName].players, bullets: state[roomName].bullets, changes: state[roomName].changes});
+			for(var i = state[roomName].changes.length-1; i>=0; i--) {
+				state[roomName].changes[i].repeat++;
+				if(state[roomName].changes[i].repeat%5==0){
+					state[roomName].changes[i].repeat = 0;
+					state[roomName].changes.splice(i, 1);
+				}
 			}
-			if(repeat%3==0){state[roomName].changes = [];}
 		} else {
 			emitGameOver(roomName, winner);
 			state[roomName] = null;
@@ -147,5 +148,5 @@ function emitGameOver(roomName, winner) {
 	io.sockets.in(roomName).emit('gameOver', JSON.stringify({winner}));
 }
 
-io.listen(process.env.PORT || 3000);
-//io.listen(3000);
+//io.listen(process.env.PORT || 3000);
+io.listen(3000);

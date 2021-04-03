@@ -12,6 +12,7 @@ class Tile {
     this.color = color;
 		this.text = "";
 		this.textSize = '30px';
+		this.repeat = 0;
   }
 
   changeOwner(p) {

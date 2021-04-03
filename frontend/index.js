@@ -8,8 +8,8 @@ const BULLET_RADIUS = 5;
 const PLAYER_RADIUS = 11.5;
 const font = "Tahoma";
 
-const socket = io('https://frozen-bastion-63637.herokuapp.com/');
-//const socket = io('http://localhost:3000')
+//const socket = io('https://frozen-bastion-63637.herokuapp.com/');
+const socket = io('http://localhost:3000')
 
 var gameState = {};
 
@@ -256,11 +256,9 @@ function handleInit(number) {
 function handleGameState(state) {
 	if(!gameActive){return;}
 	state = JSON.parse(state);
-	//console.log(state.board);
 	
 	if(Object.keys(gameState).length == 0){gameState = state;}
 	else {
-		if(state.board){gameState.board = state.board;}
 		gameState.players = state.players;
 		gameState.bullets = state.bullets;
 		gameState.changes = state.changes;
