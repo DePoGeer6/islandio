@@ -121,10 +121,15 @@ function startGameInterval(roomName) {
 			state[roomName] = null;
 			clearInterval(intervalId);
 		}
+
 		const winner = gameLoop(state[roomName], roomName);
 		
 		if(!winner && Object.keys(io.sockets.in(roomName).connected).length >= 1){
-			emitGameState(roomName, {players: state[roomName].players, bullets: state[roomName].bullets, changes: state[roomName].changes});
+			if(repeat%90==0){
+				emitGameState(roomName, {board: state[roomName].board, players: state[roomName].players, bullets: state[roomName].bullets, changes: state[roomName].changes});
+			} else {
+				emitGameState(roomName, {players: state[roomName].players, bullets: state[roomName].bullets, changes: state[roomName].changes});
+			}
 			if(repeat%3==0){state[roomName].changes = [];}
 		} else {
 			emitGameOver(roomName, winner);

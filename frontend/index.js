@@ -256,9 +256,11 @@ function handleInit(number) {
 function handleGameState(state) {
 	if(!gameActive){return;}
 	state = JSON.parse(state);
+	//console.log(state.board);
 	
 	if(Object.keys(gameState).length == 0){gameState = state;}
 	else {
+		if(state.board){gameState.board = state.board;}
 		gameState.players = state.players;
 		gameState.bullets = state.bullets;
 		gameState.changes = state.changes;
