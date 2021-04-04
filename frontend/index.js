@@ -12,6 +12,7 @@ const socket = io('https://frozen-bastion-63637.herokuapp.com/');
 //const socket = io('http://localhost:3000')
 
 var gameState = {};
+var rn = '';
 
 socket.on('init', handleInit);
 socket.on('allGood', handleAllGood);
@@ -23,6 +24,7 @@ socket.on('tooManyPlayers', handleTooManyPlayers);
 socket.on('keyDead', handleKeyDead);
 socket.on('renderUpgrade', handleRenderUpgrade);
 socket.on('stopUpgrading', handleStopUpgrading);
+socket.on('usernames', handleUsernames);
 
 const gameScreen = document.getElementById('gameScreen');
 const initialScreen = document.getElementById('initialScreen');
@@ -30,23 +32,54 @@ const newGameBtn = document.getElementById('newGameButton');
 const joinGameBtn = document.getElementById('joinGameButton');
 const gameCodeInput = document.getElementById('gameCodeInput');
 const gameCodeDisplay = document.getElementById('gameCodeDisplay');
+const preGame = document.getElementById('preGame');
+const connectedPlayers = document.getElementById('connectedPlayers');
+const startGameBtn = document.getElementById('startGameButton');
+const username = document.getElementById('username');
 const errorBox = document.getElementById('errorBox');
 
 newGameBtn.addEventListener('click', newGame);
 joinGameBtn.addEventListener('click', joinGame);
+startGameBtn.addEventListener('click', startGame);
+
+if(!localStorage.getItem('username')){
+	localStorage.setItem('username', makeUsername());
+}
+
+username.value = localStorage.getItem('username');
 
 function newGame() {
   socket.emit('newGame');
+	playerNumber = 1;
   init();
 }
 
 function joinGame() {
 	const code = gameCodeInput.value;
+	localStorage.setItem('username', username.value);
 	socket.emit('joinGame', code);
 }
 
-function handleAllGood() {
+function handleAllGood(data) {
 	init();
+	rn = data;
+	gameCodeDisplay.innerHTML = "Your game code is: " + rn;
+	connectedPlayers.innerHTML = "Connected players: " + localStorage.getItem('username');
+}
+
+function handleUsernames(data) {
+	data = JSON.parse(data);
+	var text = "Connected players: ";
+	for(p of data.s){
+		if(p.username){
+			text += p.username + ", ";
+		}
+	}
+	connectedPlayers.innerHTML = text;
+}
+
+function startGame() {
+	socket.emit('startGame', rn);
 }
 
 let canvas, ctx;
@@ -65,7 +98,13 @@ function init() {
 	//hide initial screen and show game screen
 	initialScreen.style.display = "none";
 	gameScreen.style.display = "block";
-	gameCodeDisplay.style.display = "block";
+	preGame.style.display = "block";
+	console.log(playerNumber);
+	if(playerNumber != 1){
+		startGameBtn.style.display = "none";
+	} else {
+		startGameBtn.style.display = "block";
+	}
 	
 	canvas = document.getElementById('drawingArea');
 	ctx = canvas.getContext('2d');
@@ -151,7 +190,7 @@ function renderGame(state) {
 	
 	localPlayers = state.players;
 	
-	gameCodeDisplay.style.display = "none"; 
+	preGame.style.display = "none"; 
 	camera.x = state.players[playerNumber-1].x - canvas.width/2;
   camera.y = state.players[playerNumber-1].y - canvas.height/2;
   ctx.setTransform(1, 0, 0, 1, -1 * camera.x, -1 * camera.y);
@@ -251,6 +290,7 @@ function renderTile(tile, x, y, fill, text, textSize, localTile) {
 
 function handleInit(number) {
 	playerNumber = number;
+	socket.emit('username', {n: number, u: localStorage.getItem('username')});
 }
 
 function handleGameState(state) {
@@ -271,7 +311,6 @@ function handleGameState(state) {
 function handleGameOver(winner) {
 	if(!gameActive){return;}
 	winner = JSON.parse(winner);
-	console.log(winner.winner.id);
 	if(winner.winner.id == clientPlayer.id) {
 		console.log("winning message rendered");
 		//alert("you win");
@@ -285,6 +324,9 @@ function handleGameOver(winner) {
 
 function handleGameCode(code) {
 	gameCodeDisplay.innerHTML = "Your game code is: " + code;
+	localStorage.setItem('username', username.value);
+	connectedPlayers.innerHTML = "Connected players: " + localStorage.getItem('username');
+	rn = code;
 }
 
 function handleUnknownGame() {
@@ -303,6 +345,7 @@ function reset() {
 	playerNumber = null;
 	gameCodeInput.value = "";
 	gameCodeDisplay.innerText = "";
+	connectedPlayers.innerText = "";
 	initialScreen.style.display = "block";
 	gameScreen.style.display = "none"
 }
@@ -645,6 +688,14 @@ function renderWinnerMessage(player){
   ctx.fillText("ALL YOUR FRIENDS SUCK", 250, 160);
   ctx.fillText("(TELL YOUR FRIENDS)", 250, 225);
   ctx.restore();
+}
+
+function makeUsername() {
+	var name = "";
+	const words = ['Frodo', 'Alfred', 'Maunu', 'Gonzo', 'Bobo', 'Larry'];
+	name += words[Math.floor(Math.random()*words.length)];
+	name += Math.floor(Math.random()*1000);
+	return name;
 }
 
 

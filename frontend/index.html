@@ -11,6 +11,9 @@
 		<div class="true-center" id="initialScreen">
 			<div>
 					<h1 class="center">Islands.io</h1>
+					<div class="center">
+						<span>NAME:</span> <input type="text" id="username" style="width:50%">
+					</div>
 					<div class="center"><button
 						type="submit"
 						id="newGameButton"
@@ -36,7 +39,11 @@
 
 		
 		<div id="gameScreen">
-			<div class="gc"><h2 class="center" id="gameCodeDisplay">Your game code is:</h2></div>
+			<div class="gc" id="preGame">
+				<h2 class="center" id="connectedPlayers">Connected players:</h2>
+				<h2 class="center" id="gameCodeDisplay">Your game code is:</h2>
+				<div class="center"><button class="s" id="startGameButton">START GAME</button></div>
+			</div>
 			<canvas id="drawingArea" style="border:0px solid black"></canvas>
 		</div>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>

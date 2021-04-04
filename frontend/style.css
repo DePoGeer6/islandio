@@ -29,6 +29,16 @@ h2.center {
 	padding: 15px;
 }
 
+span {
+	color: #ADC3D1;
+	margin: 0px;
+	text-align: center;
+	font-size: 1em;
+	font-weight: bold;
+	padding-bottom: 15px;
+	padding-right: 15px;
+}
+
 button {
 	border-radius: 30px;
 	width: 100%;
@@ -38,6 +48,20 @@ button {
 	padding: 15px;
 	font-family: "Tahoma";
 	color: #2E5984;
+	font-size: 1em;
+	font-weight: bold;
+	background-color: #8DA2B8;
+}
+
+button.s {
+	border-radius: 30px;
+	width: 50%;
+  margin: 15px;
+	box-sizing: border-box;
+  border: 1px solid #8DA2B8;
+	padding: 15px;
+	font-family: "Tahoma";
+	color: white;
 	font-size: 1em;
 	font-weight: bold;
 	background-color: #8DA2B8;
@@ -72,7 +96,7 @@ input {
   top: 50%;
   left: 50%;
   -ms-transform: translate(-50%, -50%);
-  transform: translate(-50%, -70%);
+  transform: translate(-50%, -60%);
 }
 
 .gc {
@@ -87,6 +111,7 @@ input {
 
 button:hover {
 	background-color: #BCC7D1;
+	border: 1px solid #BCC7D1;
 }
 
 p {

@@ -16,6 +16,13 @@ io.on('connection', client => {
 	client.on('mouseDown', handleMouseDown);
 	client.on('mouseUp', handleMouseUp);
 	client.on('gameEnded', handleGameEnd);
+	client.on('startGame', startGame);
+	client.on('username', handleUsername);
+	
+	function handleUsername(data) {
+		state[clientRooms[client.id]].players[data.n-1].username = data.u;
+		io.sockets.in(clientRooms[client.id]).emit('usernames', JSON.stringify({s:state[clientRooms[client.id]].players, n:Object.keys(io.sockets.adapter.rooms[clientRooms[client.id]].sockets).length}));
+	}
 	
 	function handleGameEnd(byebye) {
 		clientRooms[client.id] = byebye;
@@ -37,14 +44,16 @@ io.on('connection', client => {
 			client.emit('tooManyPlayers');
 			return;
 		} else {
-			client.emit('allGood');
+			client.emit('allGood', gameCode);
 		}
 		
 		clientRooms[client.id] = gameCode;
 		client.join(gameCode);
 		client.number = 2;
 		client.emit('init', 2);
-		
+	}
+	
+	function startGame(gameCode) {
 		startGameInterval(gameCode);
 	}
 	
