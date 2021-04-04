@@ -244,6 +244,10 @@ function renderPlayer(player) {
   ctx.stroke(); 
   ctx.fill();
 	
+	ctx.fillStyle = "white";
+	ctx.font = "15px " + font;
+	ctx.fillText(player.username, player.x, player.y-PLAYER_RADIUS/2-22.5);
+	
 	renderArrow(player.arrowData);
 }
 

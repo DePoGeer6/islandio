@@ -42,26 +42,44 @@ function createGameState() {
 		} 
 	}
 	
-	var playerOne = new Player("Frodo", 245+TILE_SIZE/2, 245+TILE_SIZE/2, "darkblue", 900, 900);
-	let tt = board[3][3];
-	board[3][3] = new HomeTile(tt.topX, tt.topY, tt.row, tt.column, playerOne.id, playerOne.color);
-	playerOne.homeTile = board[3][3];
-	ht.push(board[3][3]);
-	tt = board[4][3];
-	board[4][3] = new MineTile(tt.topX, tt.topY, tt.row, tt.column, playerOne.id, playerOne.color);
-	mt.push(board[4][3]);
+	var playerOne = new Player("Frodo", 725+TILE_SIZE/2, 725+TILE_SIZE/2, "darkblue", 0, 0);
+	let tt = board[9][9];
+	board[9][9] = new HomeTile(tt.topX, tt.topY, tt.row, tt.column, playerOne.id, playerOne.color);
+	playerOne.homeTile = board[9][9];
+	ht.push(board[9][9]);
+	tt = board[10][9];
+	board[10][9] = new MineTile(tt.topX, tt.topY, tt.row, tt.column, playerOne.id, playerOne.color);
+	mt.push(board[10][9]);
 	
-	var playerTwo = new Player("Alfred", 565+TILE_SIZE/2, 245+TILE_SIZE/2, "orange", 900, 900);
-	tt = board[7][3];
-	board[7][3] = new HomeTile(tt.topX, tt.topY, tt.row, tt.column, playerTwo.id, playerTwo.color);
-	playerTwo.homeTile = board[7][3];
-	ht.push(board[7][3]);
-	tt = board[8][3];
-	board[8][3] = new MineTile(tt.topX, tt.topY, tt.row, tt.column, playerTwo.id, playerTwo.color);
-	mt.push(board[8][3]);
+	var playerTwo = new Player("Alfred", 4005+TILE_SIZE/2, 725+TILE_SIZE/2, "orange", 0, 0);
+	tt = board[50][9];
+	board[50][9] = new HomeTile(tt.topX, tt.topY, tt.row, tt.column, playerTwo.id, playerTwo.color);
+	playerTwo.homeTile = board[50][9];
+	ht.push(board[50][9]);
+	tt = board[49][9];
+	board[49][9] = new MineTile(tt.topX, tt.topY, tt.row, tt.column, playerTwo.id, playerTwo.color);
+	mt.push(board[49][9]);
+	
+	var playerThree = new Player("Maunu", 725+TILE_SIZE/2, 3205+TILE_SIZE/2, "lightcoral", 0, 0);
+	tt = board[9][40];
+	board[9][40] = new HomeTile(tt.topX, tt.topY, tt.row, tt.column, playerThree.id, playerThree.color);
+	playerThree.homeTile = board[9][40];
+	ht.push(board[9][40]);
+	tt = board[10][40];
+	board[10][40] = new MineTile(tt.topX, tt.topY, tt.row, tt.column, playerThree.id, playerThree.color);
+	mt.push(board[10][40]);
+	
+	var playerFour = new Player("Bobby", 4005+TILE_SIZE/2, 3205+TILE_SIZE/2, "lightgreen", 0, 0);
+	tt = board[50][40];
+	board[50][40] = new HomeTile(tt.topX, tt.topY, tt.row, tt.column, playerFour.id, playerFour.color);
+	playerFour.homeTile = board[50][40];
+	ht.push(board[50][40]);
+	tt = board[49][40];
+	board[49][40] = new MineTile(tt.topX, tt.topY, tt.row, tt.column, playerFour.id, playerFour.color);
+	mt.push(board[49][40]);
 	
 	return {
-		players: [playerOne, playerTwo],
+		players: [playerOne, playerTwo, playerThree, playerFour],
 		board: board,
 		homeTiles: ht,
 		mineTiles: mt,

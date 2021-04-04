@@ -1,5 +1,6 @@
 const io = require('socket.io')();
 const {makeId} = require('./utils');
+const {Tile, HomeTile, WallTile, TurretTile, SmitheryTile, MineTile, Player} = require('./globalObjects');
 const {createGameState, shoot, gameLoop, getUpdatedVelocity, initGame, focusTileCheck, upgradeCheck, shopCheck} = require('./game');
 const {FRAME_RATE, BOARD_HEIGHT, BOARD_WIDTH, TILE_GAP, TILE_SIZE, BULLET_RADIUS, PLAYER_RADIUS, FONT,} = require('./constants');
 
@@ -21,7 +22,7 @@ io.on('connection', client => {
 	
 	function handleUsername(data) {
 		state[clientRooms[client.id]].players[data.n-1].username = data.u;
-		io.sockets.in(clientRooms[client.id]).emit('usernames', JSON.stringify({s:state[clientRooms[client.id]].players, n:Object.keys(io.sockets.adapter.rooms[clientRooms[client.id]].sockets).length}));
+		io.sockets.in(clientRooms[client.id]).emit('usernames', JSON.stringify({s:state[clientRooms[client.id]].players}));
 	}
 	
 	function handleGameEnd(byebye) {
@@ -40,7 +41,7 @@ io.on('connection', client => {
 		if(numClients === 0) {
 			client.emit('unknownGame');
 			return;
-		} else if(numClients > 1) { 
+		} else if(numClients > 3) { 
 			client.emit('tooManyPlayers');
 			return;
 		} else {
@@ -49,11 +50,43 @@ io.on('connection', client => {
 		
 		clientRooms[client.id] = gameCode;
 		client.join(gameCode);
-		client.number = 2;
-		client.emit('init', 2);
+		
+		client.number = numClients + 1;
+		client.emit('init', numClients + 1);
 	}
 	
-	function startGame(gameCode) {
+	function startGame(gameCode) {		
+		var numbPlayers = Object.keys(io.sockets.adapter.rooms[clientRooms[client.id]].sockets).length;
+		if(numbPlayers<2){return;}
+		
+		let tt;
+		switch(numbPlayers) {
+			case 2:
+				tt = state[gameCode].mineTiles[2];
+				state[gameCode].board[tt.column][tt.row] = new Tile(tt.topX, tt.topY, tt.row, tt.column);
+				tt = state[gameCode].mineTiles[3];
+				state[gameCode].board[tt.column][tt.row] = new Tile(tt.topX, tt.topY, tt.row, tt.column);
+				tt = state[gameCode].homeTiles[2];
+				state[gameCode].board[tt.column][tt.row] = new Tile(tt.topX, tt.topY, tt.row, tt.column);
+				tt = state[gameCode].homeTiles[3];
+				state[gameCode].board[tt.column][tt.row] = new Tile(tt.topX, tt.topY, tt.row, tt.column);
+				state[gameCode].players.pop();
+				state[gameCode].players.pop();
+				state[gameCode].mineTiles.pop();
+				state[gameCode].mineTiles.pop();
+				state[gameCode].homeTiles.pop();
+				state[gameCode].homeTiles.pop();
+				break;
+			case 3:
+				tt = state[gameCode].mineTiles[3];
+				state[gameCode].board[tt.column][tt.row] = new Tile(tt.topX, tt.topY, tt.row, tt.column);
+				tt = state[gameCode].homeTiles[3];
+				state[gameCode].board[tt.column][tt.row] = new Tile(tt.topX, tt.topY, tt.row, tt.column);
+				state[gameCode].players.pop();
+				state[gameCode].mineTiles.pop();
+				state[gameCode].homeTiles.pop();
+				break;
+		}
 		startGameInterval(gameCode);
 	}
 	
