@@ -44,7 +44,10 @@ io.on('connection', client => {
 		} else if(numClients > 3) { 
 			client.emit('tooManyPlayers');
 			return;
-		} else {
+		} else if(state[gameCode].started) {
+			client.emit('tooManyPlayers');
+			return;
+		}	else {
 			client.emit('allGood', gameCode);
 		}
 		
@@ -87,6 +90,7 @@ io.on('connection', client => {
 				state[gameCode].homeTiles.pop();
 				break;
 		}
+		state[gameCode].started = true;
 		startGameInterval(gameCode);
 	}
 	
