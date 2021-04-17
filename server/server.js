@@ -58,6 +58,7 @@ io.on('connection', client => {
 		client.emit('init', numClients + 1);
 	}
 	
+	
 	function startGame(gameCode) {		
 		var numbPlayers = Object.keys(io.sockets.adapter.rooms[clientRooms[client.id]].sockets).length;
 		if(numbPlayers<2){return;}
