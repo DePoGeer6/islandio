@@ -42,7 +42,7 @@ function createGameState() {
 		} 
 	}
 	
-	var playerOne = new Player("Frodo", 725+TILE_SIZE/2, 725+TILE_SIZE/2, "darkblue", 900, 900);
+	var playerOne = new Player("Frodo", 725+TILE_SIZE/2, 725+TILE_SIZE/2, "darkblue", 0, 0);
 	let tt = board[9][9];
 	board[9][9] = new HomeTile(tt.topX, tt.topY, tt.row, tt.column, playerOne.id, playerOne.color);
 	playerOne.homeTile = board[9][9];
@@ -51,7 +51,7 @@ function createGameState() {
 	board[10][9] = new MineTile(tt.topX, tt.topY, tt.row, tt.column, playerOne.id, playerOne.color);
 	mt.push(board[10][9]);
 	
-	var playerTwo = new Player("Alfred", 4005+TILE_SIZE/2, 725+TILE_SIZE/2, "orange", 900, 900);
+	var playerTwo = new Player("Alfred", 4005+TILE_SIZE/2, 725+TILE_SIZE/2, "orange", 0, 0);
 	tt = board[50][9];
 	board[50][9] = new HomeTile(tt.topX, tt.topY, tt.row, tt.column, playerTwo.id, playerTwo.color);
 	playerTwo.homeTile = board[50][9];
