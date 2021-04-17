@@ -42,7 +42,7 @@ function createGameState() {
 		} 
 	}
 	
-	var playerOne = new Player("Frodo", 725+TILE_SIZE/2, 725+TILE_SIZE/2, "darkblue", 0, 0);
+	var playerOne = new Player("Frodo", 725+TILE_SIZE/2, 725+TILE_SIZE/2, "darkblue", 900, 900);
 	let tt = board[9][9];
 	board[9][9] = new HomeTile(tt.topX, tt.topY, tt.row, tt.column, playerOne.id, playerOne.color);
 	playerOne.homeTile = board[9][9];
@@ -51,7 +51,7 @@ function createGameState() {
 	board[10][9] = new MineTile(tt.topX, tt.topY, tt.row, tt.column, playerOne.id, playerOne.color);
 	mt.push(board[10][9]);
 	
-	var playerTwo = new Player("Alfred", 4005+TILE_SIZE/2, 725+TILE_SIZE/2, "orange", 0, 0);
+	var playerTwo = new Player("Alfred", 4005+TILE_SIZE/2, 725+TILE_SIZE/2, "orange", 900, 900);
 	tt = board[50][9];
 	board[50][9] = new HomeTile(tt.topX, tt.topY, tt.row, tt.column, playerTwo.id, playerTwo.color);
 	playerTwo.homeTile = board[50][9];
@@ -147,7 +147,7 @@ function gameLoop(state, roomName) {
 			//state.changes.push(tt);
 		}
 		
-		if(tt.owner != player.id && tt.constructor.name == "WallTile" && !player.hidden){
+		if(tt.owner != player.id && tt.constructor.name == "WallTile" && !player.hidden && !player.immune){
 			player.health -= 1/(FRAME_RATE*.5);
 			if(player.health <= 0){
 				killPlayer(player);
@@ -198,21 +198,30 @@ function gameLoop(state, roomName) {
 			}
 		}
 		
-		if(player.turretShootDelay >= FRAME_RATE) {
-			player.turretShootDelay = 0;
-			if(gameStates[roomName].turretTiles.length > 0){
-			for(x of gameStates[roomName].turretTiles) {
+		if(player.immune) {
+			player.immuneDelay += 1/FRAME_RATE;
+			if(player.immuneDelay >= 10) {
+				player.immuneDelay = 0;
+				player.immune = false;
+			}
+		}
+		
+	}
+	
+	if(gameStates[roomName].turretTiles.length > 0){
+		for(x of gameStates[roomName].turretTiles) {
+			var player = playerById(x.owner, roomName);
+			if(player.turretShootDelay >= FRAME_RATE) {
+				player.turretShootDelay = 0;
 				for(p of state.players) {
-					if(!p.hidden){
+					if(!p.hidden && !p.immune){
 						if(Math.abs(p.x-(x.topX+TILE_SIZE/2)) <= 250 && Math.abs(p.y-(x.topY+TILE_SIZE/2)) <= 250 && p.id != x.owner){
 							turretShoot(x, p);
 						}
 					}
 				}
 			}
-			}
 		}
-		
 	}
 	
 	//genResources
@@ -226,8 +235,10 @@ function gameLoop(state, roomName) {
     bullet.x += bullet.s*Math.sin(bullet.ang);
     bullet.y -= bullet.s*Math.cos(bullet.ang);
     bullet.life--;
-    bullet.damage = 1 + 0.333*(playerById(bullet.owner, roomName).forceLevel-1);
-    bullet.s = 7.5+(playerById(bullet.owner, roomName).forceLevel-1);
+		if(!bullet.isTurret){
+			bullet.damage = 1 + 0.333*(playerById(bullet.owner, roomName).forceLevel-1);
+			bullet.s = 7.5+(playerById(bullet.owner, roomName).forceLevel-1);
+		}
     if(bullet.life <= 0){
       state.bullets.splice(i, 1);
       i--;
@@ -240,7 +251,7 @@ function gameLoop(state, roomName) {
     }
 		var p = bullet.hitPlayer(state.players);
 		if(p){
-			if(!p.hidden){
+			if(!p.hidden && !p.immune){
 				p.health -= bullet.damage;
 				state.bullets.splice(i, 1);
 				i--;
@@ -307,7 +318,8 @@ function calcArrow(player, radius){
 }
 
 function getUpdatedVelocity(keys, player) {
-	const speed = player.speed;
+	var speed = player.speed;
+	if(player.immune){speed = speed * 0.6;}
 	var tempVel = {x: 0, y: 0};
 	if(player.hidden){return tempVel;}
 	
@@ -403,11 +415,11 @@ function claimTile(focus, player, type) {
 			}
 			break;
 		case "turret":
-			if(player.stone >= 50 && player.gold >= 15){
+			if(player.stone >= 70 && player.gold >= 30){
 				tiles[focus.column][focus.row] = new TurretTile(focus.topX, focus.topY, focus.row, focus.column, player.id, player.color);
 				gameStates[player.roomName].turretTiles.push(tiles[focus.column][focus.row]);
-				player.stone -= 50;
-				player.gold -= 15;
+				player.stone -= 70;
+				player.gold -= 30;
 				gameStates[player.roomName].changes.push(tiles[focus.column][focus.row]);
 				return tiles[focus.column][focus.row];
 			}
@@ -437,11 +449,17 @@ function shopCheck(keys, player, rm) {
         player.forceLevel += 1;
 				return 50;
       }
-      if(keys && keys[51] && player.gold >= 150 && player.purchasedRegen == false){
+			if(keys && keys[51] && player.gold >= 100 && player.immune == false){
+        player.gold -= 100;
+        player.immune = true;
+				player.immuneDelay = 0;
+				return 51;
+      }
+      if(keys && keys[52] && player.gold >= 150 && player.purchasedRegen == false){
         player.gold -= 150;
         player.purchasedRegen = true;
         player.regen = true;
-				return 51;
+				return 52;
       }
 		}
 	}
@@ -567,7 +585,9 @@ function makeTurretBullet(x, y, radius, speed, ang, turret, rn) {
     x: x,
     y: y,
     r: radius,
-    s: speed+(playerById(turret.owner, rn).forceLevel-1),
+		isTurret: true,
+		damage: 1,
+    s: speed,
     life: 3*FRAME_RATE,
     ang: ang,
     owner: turret.owner,

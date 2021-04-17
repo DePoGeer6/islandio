@@ -99,7 +99,6 @@ function init() {
 	initialScreen.style.display = "none";
 	gameScreen.style.display = "block";
 	preGame.style.display = "block";
-	console.log(playerNumber);
 	if(playerNumber != 1){
 		startGameBtn.style.display = "none";
 	} else {
@@ -182,7 +181,6 @@ function renderGame(state) {
 	if(state.changes){
 	if(state.changes.length != 0) {
 		for(t of state.changes){
-			console.log('changes');
 			gameState.board[t.column][t.row] = t;
 		}
 	}
@@ -229,6 +227,9 @@ function renderGame(state) {
 	if(state.players[playerNumber-1].renderingShop) {
 		renderShop(state.players[playerNumber-1]);
 	}
+	if(state.players[playerNumber-1].immune) {
+		renderImmuneBar(state.players[playerNumber-1]);
+	}
 	renderSideMenu(state.players[playerNumber-1]);
 	renderMap(state)
 }
@@ -247,6 +248,16 @@ function renderPlayer(player) {
 	ctx.fillStyle = "white";
 	ctx.font = "15px " + font;
 	ctx.fillText(player.username, player.x, player.y-PLAYER_RADIUS/2-22.5);
+	
+	if(player.immune){
+		ctx.save();
+		ctx.globalAlpha = .7;
+		ctx.fillStyle = "white";
+		ctx.beginPath();
+		ctx.arc(player.x, player.y, PLAYER_RADIUS+20, 0, 2 * Math.PI);
+		ctx.fill();
+		ctx.restore();
+	}
 	
 	renderArrow(player.arrowData);
 }
@@ -290,6 +301,27 @@ function renderTile(tile, x, y, fill, text, textSize, localTile) {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(text, x+TILE_SIZE/2, y+TILE_SIZE/2);
+}
+
+function renderImmuneBar(p) {
+	ctx.save();
+	ctx.translate(camera.x+150, camera.y+canvas.height-100);
+	ctx.globalAlpha = .7;
+	ctx.fillStyle = p.color;
+	ctx.strokeStyle = "white"
+  ctx.lineWidth = 7.5;
+  ctx.fillRect(0, 0, canvas.width-300, 25);
+	ctx.globalAlpha = .5;
+  ctx.strokeRect(0, 0, canvas.width-300, 25);
+  var width = (p.immuneDelay/10)*(canvas.width-300);
+  ctx.fillStyle = "white";
+  ctx.fillRect(0,0, (canvas.width-300)-width, 25);
+	ctx.globalAlpha = 1;
+	ctx.font = "15px " + font;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+	ctx.fillText("IMMUNITY", canvas.width/2-150, 13.5);
+	ctx.restore();
 }
 
 function handleInit(number) {
@@ -416,8 +448,8 @@ function renderShop(player) {
   ctx.strokeStyle = "white"
   ctx.fillStyle = owner.color;
   ctx.lineWidth = 7.5;
-  ctx.strokeRect(0, 0, 150, 115);
-  ctx.fillRect(0, 0, 150, 115);
+  ctx.strokeRect(0, 0, 150, 140);
+  ctx.fillRect(0, 0, 150, 140);
   ctx.font = "18px " + font;
   ctx.fillStyle = "white";
   ctx.fillText("UPGRADES", 75, 20);
@@ -461,20 +493,35 @@ function renderShop(player) {
     ctx.fillStyle = "white";
     ctx.fillRect(8, 73, 134, 2);
   }
-
-  ctx.fillStyle = "white";
+	
+	ctx.fillStyle = "white";
   ctx.textAlign = "left";
-  ctx.fillText("3: REGEN", 10, 100);
+  ctx.fillText("3: IMMUNE", 10, 100);
 
   ctx.fillStyle = "gold";
   ctx.textAlign = "end";
-  ctx.fillText("150 G", 140, 100);
+  ctx.fillText("100 G", 140, 100);
   ctx.textAlign = "center";
 
-  if(player.purchasedRegen){
+  ctx.fillStyle = "white";
+  ctx.textAlign = "left";
+  ctx.fillText("4: REGEN", 10, 125);
+
+  ctx.fillStyle = "gold";
+  ctx.textAlign = "end";
+  ctx.fillText("150 G", 140, 125);
+  ctx.textAlign = "center";
+
+  if(player.immune){
     ctx.fillStyle = "white";
     ctx.fillRect(8, 98, 134, 2);
   }
+	
+	if(player.purchasedRegen){
+    ctx.fillStyle = "white";
+    ctx.fillRect(8, 123, 134, 2);
+  }
+	
   ctx.restore();
 }
 

@@ -108,6 +108,8 @@ class Player {
 		this.gameOver = false;
 		this.roomName = null;
 		this.canvas = {width: 0, height:0};
+		this.immune = false;
+		this.immuneDelay = 0;
   }
 }
 
